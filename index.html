@@ -3,6 +3,21 @@
 <title>SANKEY Experiment</title>
 <style>
 
+body {
+  text-align: center;
+  font-size: 16px;
+  font-family: Helvetica, sans-serif;
+  padding: 1em;
+}
+
+p { padding-bottom: 0.5em; }
+
+img { 
+  width: 80%;
+}
+
+.source { text-align: right; }
+
 .node rect {
   cursor: move;
   fill-opacity: .9;
@@ -27,7 +42,15 @@
 </style>
 <body>
 
-<p id="chart">
+<h1>JWAC Analysis & Forecasting</h1>
+
+<p>One useful way of visualising the progress of JWACs over time is with a <a href="http://en.wikipedia.org/wiki/Flow_map">flow map</a>. In this type of graph, nodes represent training states at a given time, while edges represent flows between them.</p>
+
+<p>The graph below has been constructed from randomised data designed to mimic recent JWAC progress. It's a cheap and nasty proof of concept for overlaying monthly PMKeys data with a webbased dashboard.</p>  
+
+<p>In a fully featured dashboard, one could view progress over time and select any node to view forecasts from there. This would give JWAC managers immediate insight into training progress and quickly identify any possible demand shortfalls or over productions.</p>
+
+<div id="chart"></div>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="sankey.js"></script>
