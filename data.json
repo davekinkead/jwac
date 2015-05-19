@@ -1,0 +1,54 @@
+{"nodes":[
+  {"name":"NEOC", "duration": 180, "links": [
+    {"name": "Phase 1", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Phase 1", "duration": 90, "links": [
+    {"name": "Phase 2", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Phase 2", "duration": 90, "links": [
+    {"name": "MSB", "p": 0.95},
+    {"name": "Resignation", "p": 0.05}
+  ]},
+  {"name":"MSB", "duration": 7, "links": [
+    {"name": "ADFA", "p": 0.35},
+    {"name": "Phase 3 Shore", "p": 0.55},
+    {"name": "Training Failure", "p": 0.10}
+  ]},
+  {"name":"ADFA", "duration": 1000, "links": [
+    {"name": "Phase 3 Shore", "p": 0.8},
+    {"name": "Resignation", "p": 0.2}
+  ]},
+  {"name":"Phase 3 Shore", "duration": 180, "links": [
+    {"name": "Phase 3 Sea", "p": 0.85},
+    {"name": "Medical", "p": 0.15}
+  ]},
+  {"name":"Phase 3 Sea", "duration": 180, "links": [
+    {"name": "Fleet Board", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Fleet Board", "duration": 180, "links": [
+    {"name": "NOLC1", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"NOLC1", "duration": 180, "links": [
+    {"name": "Phase 4 Warfare", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Phase 4 Warfare", "duration": 180, "links": [
+    {"name": "Phase 4 Sim", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Phase 4 Sim", "duration": 180, "links": [
+    {"name": "Phase 4 Endorsement", "p": 0.85},
+    {"name": "Resignation", "p": 0.15}
+  ]},
+  {"name":"Ph4 Endorsement", "duration": 60, "links": []},
+  {"name":"Resignation", "duration": 25, "links": []},
+  {"name":"Medical", "duration": 25, "links": []},
+  {"name":"Not Recommended", "duration": 25, "links": []},
+  {"name":"Training Failure", "duration": 25, "links": []}
+],"links":[
+  {"source": 0, "target": 1, "value": 45}
+]}
