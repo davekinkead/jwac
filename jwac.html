@@ -18,6 +18,8 @@
 <script src="sankey.js"></script>
 <script>
 
+  var gates = ["NEOC", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"];
+
   var width = 1200, height = 500;
 
   var svg = d3.select('#chart')
@@ -25,46 +27,63 @@
     .attr('width', width)
     .attr('height', height)
 
-  var totalValue = function(nodes) {
+  var sumNodes = function(nodes) {
     return nodes.map(function(node) { 
-        return node.value;
+        return node.members.length;
       }).reduce(function(prev, curr) { 
         return prev + curr;
-      });
+      }); 
   }
 
-  var positionNodes = function(nodesByDate) {
+  var positionNodes = function(buckets) {
     var loop = 0;
-    return [].concat.apply([], nodesByDate.map(function(group) {
-      group.values.forEach(function(node) {
-        node.x = loop * 150;
+
+    return [].concat.apply([], buckets.map(function(bucket) {
+      var nodes = Object.keys(bucket).map(function(name) {
+        return {"name": name, "members": bucket[name], "x": loop * 150}
       });
       loop++;
-      return positionNodesVertically(group.values);
+      return positionNodesVertically(nodes);
     }));
   }
 
   var positionNodesVertically = function(nodes) {
-    var denominator = totalValue(nodes), pos = 0;
+    var denominator = sumNodes(nodes), pos = 0;
 
     return nodes.sort(function(a, b) { 
-        return b.value - a.value;
+        return b.members.length - a.members.length;
       }).map(function(node) {
         node.y = pos / denominator * height + 1;
-        node.height = node.value / denominator * height - 1;
-        pos += node.value;
+        node.height = node.members.length / denominator * height - 1;
+        pos += node.members.length;
         return node;
       });
   }
 
-  d3.json('graph.json', function(json) {
+  var createBuckets = function(data) {
+    var buckets = []
 
-    var nodesByDate = d3.nest()
-      .key(function(d) { return d.date })
-      .sortKeys(function(a, b) { return new Date(a) - new Date(b) })
-      .entries(json.flows);
+    data.forEach(function(member) {
+      member.postings.forEach(function(posting, i) {
+        if (buckets[i] == undefined)
+          buckets[i] = {};
+        if (buckets[i].hasOwnProperty(posting)) {
+          buckets[i][posting].push(member.id);
+        } else {
+          buckets[i][posting] = [member.id];
+        }
+      });
+    });
 
-    var nodes = positionNodes(nodesByDate);
+    return buckets;    
+  }
+
+
+  d3.json('data.json', function(json) {
+
+    var buckets = createBuckets(json)
+
+    var nodes = positionNodes(buckets);
 
     svg.append('g')
       .selectAll('rect')
@@ -78,149 +97,9 @@
       .attr('fill', '#2E86D1')
       .attr('opacity', 0.25)
       .append('title')
-      .text(function(d) { return d.source + '' }); 
+      .text(function(d) { return d.name + ' (' + d.members.length + ')' }); 
 
   });
-
-
-  // var sankey = d3.sankey()
-  //   .nodeWidth(10)
-  //   .nodePadding(10)
-  //   .size([width, height]);
-
-  // var path = sankey.link();
-
-  // var namedNode = function(element, index, array) {
-  //   if (element.name == this.toString())
-  //     return index;
-  // }
-
-  // var getNodeNames = function(flows) {
-  //   var nodes = {}
-  //   flows.forEach(function(f) {
-  //     nodes[f.source] = 0;
-  //     nodes[f.target] = 0;
-  //   });
-  //   return Object.keys(nodes);
-  // }
-
-  // var getNodes = function(flows) {
-  //   return getNodeNames(flows).map(function(n) {
-  //     return { "name": n }
-  //   });
-  // }
-
-  // var getLinks = function(flows) {
-  //   var nodes = getNodeNames(flows);
-  //   return flows.map(function(f) {
-  //     return { "source": nodes.indexOf(f.source), "target": nodes.indexOf(f.target), "value": f.value }
-  //   });
-
-  // }
-
-  // d3.json('graph.json', function(json) {
-
-  //   var nodeData = getNodes(json.flows);
-  //   var linkData = getLinks(json.flows);
-
-  //   console.log(linkData);
-
-  //   sankey.nodes(nodeData)
-  //     .links(linkData)
-  //     .layout(32);
-
-
-  //   var links = svg.append('g').selectAll(".link")
-  //     .data(linkData)
-  //     .enter()
-  //     .append('path')
-  //     .attr("d", path)
-  //     .style("stroke-width", function(d) { console.log(d); return Math.max(1, d.dy); })
-  //     .attr('fill', '#2E86D1')
-  //     .attr('opacity', 0.25)
-  //     .sort(function(a, b) { return b.dy - a.dy; });
-
-  //   links.append("title")
-  //     .text(function(d) { return d.source.name + " → " + d.target.name + ": " + d.value; });
-
-  //   var nodes = svg.append('g').selectAll(".node")
-  //     .data(nodeData)
-  //     .enter()
-  //     .append('rect')
-  //     .attr('width', sankey.nodeWidth())
-  //     .attr('height', function(node) { return node.dy })
-  //     .attr('x', function(d) { return d.x })
-  //     .attr('y', function(d) { return d.y })
-  //     .attr('fill', '#2E86D1')
-  //     .attr('opacity', 0.25);
-
-  //   nodes.append('title')
-  //     .text(function(d) { console.log(d); return d.name; });
-  // });
-
-  // var inDays = function(dateString) {
-  //   return new Date(dateString).getTime() / (24 * 60 * 60 * 1000);
-  // }
-
-  // var nodesOverlap = function(a, b) {
-  //   return ( inDays(a.start) < inDays(b.finish) && inDays(a.finish) > inDays(b.start) ) ? true : false;
-  // }
-
-  // var padding = 5;
-
-  // var svg = d3.select('#chart')
-  //   .append("svg:svg")
-  //   .attr("width", 2000)
-  //   .attr("height", 400);
-
-  // d3.json('graph.json', function(err, json) {
-
-  //   var nodes = json.nodes.sort(function(a, b) {
-  //     return new Date(a.start) - new Date(b.start);
-  //   });
-
-  //   var timeOffset = inDays(nodes[0].start) - padding;
-
-  //   var nodeHeight = function(node) {
-  //     return 25 * 2;
-  //   }
-
-  //   var nodeWidth = function(node) {
-  //     return inDays(node.finish) - inDays(node.start);
-  //   }
-
-  //   var computeNodePosition = function(nodes) {
-  //     nodes.forEach(function(current) {
-  //       current.x = inDays(current.start) - timeOffset;
-  //       //current.x += (inDays(current.finish) - inDays(current.start)) / 2;
-
-  //       var lowWaterMark = padding;
-  //       nodes.forEach(function(comparable) {
-  //         if (current !== comparable && nodesOverlap(current, comparable)) {
-  //           current.y = lowWaterMark;
-  //           lowWaterMark += nodeHeight(comparable) + padding;
-  //           console.log(current.y);
-  //         } else {
-  //           current.y = padding;
-  //         }
-  //       });
-  //     });
-  //   }
-
-  //   computeNodePosition(nodes);
-
-  //   svg.selectAll('rect')
-  //     .data(nodes)
-  //     .enter()
-  //     .append('rect')
-  //     .attr('x', function(node) { return node.x })
-  //     .attr('y', function(node) { return node.y })
-  //     .attr('width', function(node) { return nodeWidth(node); })
-  //     .attr('height', function(node) { return nodeHeight(node); })
-  //     .attr('fill', '#2E86D1')
-  //     .attr('opacity', 0.25);
-
-  // });
 
 </script>
 
