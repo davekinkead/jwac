@@ -1,31 +1,40 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>JWAC Training Analysis</title>
+<title>JWAC Sensitivity Analysis</title>
 <style>
 
-  #chart {
-    margin: 1em;
-  }
+  body { text-align: center; margin: 0; padding: 0; }
+
+  #chart { margin: 1em; }
+  #info { position: absolute; bottom: 2em; right: 2em; width: 300px; height: 200px; border: 1px solid #CCC; padding: 1em; box-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+
+  .node:hover { opacity: 0.5; }
+  .link:hover { opacity: 0.325; }
+  
+
 
 </style>
 <body>
 
-<h1>JWAC Analysis & Forecasting</h1>
+<h1>JWAC Sensitivity Analysis</h1>
 
 <div id="chart"></div>
+<div id="info">
+  <h3>Click on the chart to edit</h3>
+</div>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="sankey.js"></script>
 <script>
 
-  var gates = ["NEOC", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"];
+  var gates = ["NEOC", "ADFA", "Transfer", "Changeover", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"];
 
-  var width = 1200, height = 500;
+  var width = screen.width - 100, height = screen.height - 300, nodeWidth = 50, nodePadding = 2;
 
   var svg = d3.select('#chart')
     .append('svg')
     .attr('width', width)
-    .attr('height', height)
+    .attr('height', height);
 
   var sumNodes = function(nodes) {
     return nodes.map(function(node) { 
@@ -49,12 +58,13 @@
 
   var positionNodesVertically = function(nodes) {
     var denominator = sumNodes(nodes), pos = 0;
+    denominator = 100;
 
     return nodes.sort(function(a, b) { 
         return b.members.length - a.members.length;
       }).map(function(node) {
-        node.y = pos / denominator * height + 1;
-        node.height = node.members.length / denominator * height - 1;
+        node.y = pos / denominator * height + nodePadding;
+        node.height = node.members.length / denominator * height - nodePadding;
         pos += node.members.length;
         return node;
       });
@@ -89,35 +99,54 @@
               if (links[index].hasOwnProperty(i))
                 links[index][i] += 1;
               else
-                links[index][i] = 0;
+                links[index][i] = 1;
           });
       });
-
-
     });
 
     var results = []
     links.forEach(function(array, index) {
       array.forEach(function(el, i) {
-        if (el > 0)
-          results.push ({"source": index, "target": i, "value": el});
+        results.push ({"source": index, "target": i, "value": el});
       });        
     });
     return results;
   }
 
   var positionNodesAndLinks = function(nodes, links) {
-    offsets = [];
-
-    links.sort(function(a, b) {
-      return a.value - b.value;
-    }).forEach(function(link) {
-
+    nodes.forEach(function(node) {
+      node.x = node.gate * 125;
     });
 
-    return links.sort(function(a, b) {
-      return a.source - b.source;
+    var offsetLHS = [], offsetRHS = [];
+    links.forEach(function(link) {
+      var linkL = link.value * (nodes[link.source].height) / nodes[link.source].members.length
+      var linkR = link.value * (nodes[link.target].height) / nodes[link.target].members.length
+
+      if (!offsetLHS.hasOwnProperty(link.source))
+        offsetLHS[link.source] = 0;
+      if (!offsetRHS.hasOwnProperty(link.target))
+        offsetRHS[link.target] = 0;
+
+      link.proportion = link.value / nodes[link.source].members.length;
+      link.y0 = nodes[link.source].y + offsetLHS[link.source];
+      link.y1 = nodes[link.target].y + offsetRHS[link.target];
+      link.y2 = nodes[link.target].y + offsetRHS[link.target] + linkR;
+      link.y3 = nodes[link.source].y + offsetLHS[link.source] + linkL;
+      offsetLHS[link.source] += linkL;
+      offsetRHS[link.target] += linkR;
+
+      link.x0 = nodes[link.source].x + nodeWidth + 0;
+      link.x1 = nodes[link.target].x - 0;
     });
+  }
+
+  var colour = function(target) {
+    if (gates.indexOf(target) !== -1) {
+      return '#2E86D1';
+    } else {
+      return '#666';
+    }
   }
 
   d3.json('data.json', function(json) {
@@ -127,44 +156,43 @@
     var links = createLinks(nodes)
     positionNodesAndLinks(nodes, links);
 
+
     var linkPoints = function(d) {
-      return 'M'+ nodes[d.source].gate * 150+50 +' '+ nodes[d.source].y 
-        +' L'+ nodes[d.target].gate * 150 +' '+ nodes[d.target].y 
-        +' V'+ nodes[d.target].height + nodes[d.target].y
-        +' L'+ nodes[d.source].gate * 150+50 +' '+ nodes[d.source].height + nodes[d.source].y 
+      return 'M'+ d.x0 +' '+ d.y0 
+        +' L'+ d.x1 +' '+ d.y1 
+        +' L'+ d.x1 +' '+ d.y2 
+        +' L'+ d.x0 +' '+ d.y3
         +' Z';
     }
 
     svg.append('g')
-      .selectAll('rect')
+      .selectAll('.node')
       .data(nodes)
       .enter()
       .append('rect')
-      .attr('x', function(d) { return d.gate * 150 })
+      .attr('x', function(d) { return d.x })
       .attr('y', function(d) { return d.y })
-      .attr('width', 50) //function(d) { return nodeWidth(node); })
+      .attr('width', nodeWidth) //function(d) { return nodeWidth(node); })
       .attr('height', function(d) { return d.height })
-      .attr('fill', '#2E86D1')
-      .attr('opacity', 0.25)
+      .attr('fill', function(d) { return colour(d.name) })
+      .attr('opacity', 0.375)
+      .attr('class', 'node')
       .append('title')
-      .text(function(d) { return d.name + ' (' + d.members.length + ')' }); 
+      .text(function(d) { return d.name + '\n ' + d.members.length }); 
 
     svg.append('g')
-      .selectAll('.links')
+      .selectAll('.link')
       .data(links)
       .enter()
       .append('path')
       .attr('d', linkPoints)
-      .attr('fill', '#2E86D1')
+      .attr('fill', function(d) { return colour(nodes[d.target].name) })
       .attr('opacity', 0.25)
+      .attr('class', 'link')
       .append('title')
-      .text(function(d) { return nodes[d.source].name +' -> '+ nodes[d.target].name +' '+ d.value }); 
-      
-    console.log(nodes);
-    console.log(links);
+      .text(function(d) { return nodes[d.source].name +' -> '+ nodes[d.target].name +'\n'+ d.value +' ('+ d.proportion.toFixed(2) * 100 +'%)'}); 
+  
   });
-
-
 
 </script>
 

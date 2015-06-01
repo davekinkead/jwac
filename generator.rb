@@ -31,7 +31,7 @@ starting_vectors = [
   {"NEOC" => 0.4}, 
   {"ADFA" => 0.5}, 
   {"Transfer" => 0.05}, 
-  {"Changover" => 0.05}
+  {"Changeover" => 0.05}
 ]
 terminating_vectors = ["Medical", "Resignation", "Failure", "JWAC Endorsement"]
 
@@ -49,7 +49,7 @@ vectors = {
   "Transfer" => [
     {"JWAC 1" => 1.0}
   ],
-  "Changover" => [
+  "Changeover" => [
     {"JWAC 1" => 1.0}
   ],
   "JWAC 1" => [
@@ -84,27 +84,25 @@ vectors = {
   ],  
   "Fleet Board" => [
     {"NOLC1" => 0.85},
-    {"Medical" => 0.025},
-    {"Resignation" => 0.025},
-    {"Failure" => 0.1}
+    {"Failure" => 0.15}
   ],  
   "NOLC1" => [
-    {"JWAC Warfare" => 0.9},
-    {"Medical" => 0.025},
-    {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
+    {"JWAC Warfare" => 0.95},
+    {"Medical" => 0.01},
+    {"Resignation" => 0.02},
+    {"Failure" => 0.02} 
   ],  
   "JWAC Warfare" => [
-    {"JWAC Simulator" => 0.9},
-    {"Medical" => 0.025},
-    {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
+    {"JWAC Simulator" => 0.95},
+    {"Medical" => 0.01},
+    {"Resignation" => 0.02},
+    {"Failure" => 0.02} 
   ],  
   "JWAC Simulator" => [
-    {"JWAC Endorsement" => 0.9},
-    {"Medical" => 0.025},
-    {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
+    {"JWAC Endorsement" => 0.95},
+    {"Medical" => 0.01},
+    {"Resignation" => 0.02},
+    {"Failure" => 0.02} 
   ]
 }
 
