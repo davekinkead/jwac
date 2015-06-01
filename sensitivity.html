@@ -6,13 +6,11 @@
   body { text-align: center; margin: 0; padding: 0; }
 
   #chart { margin: 1em; }
-  #info { position: absolute; bottom: 2em; right: 2em; width: 300px; height: 200px; border: 1px solid #CCC; padding: 1em; box-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+  #info { position: absolute; bottom: 50px; right: 50px; width: 300px; height: 200px; border: 1px solid #CCC; padding: 1em; box-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
 
   .node:hover { opacity: 0.5; }
   .link:hover { opacity: 0.325; }
   
-
-
 </style>
 <body>
 
@@ -20,7 +18,8 @@
 
 <div id="chart"></div>
 <div id="info">
-  <h3>Click on the chart to edit</h3>
+  <h3>Click to Edit</h3>
+  <p>TODO: Allow the user to override gate values for sensitivity analysis.  The downstream gates will turn red if course min/max is exceeded.</p>
 </div>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
