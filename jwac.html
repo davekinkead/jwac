@@ -78,7 +78,7 @@
     return buckets;    
   }
 
-  var createLinks = function(nodes, data) {
+  var createLinks = function(nodes) {
     var links = Array.apply(null, Array(nodes.length)).map(function() { return []; });
 
     nodes.forEach(function(node, index) {
@@ -99,20 +99,41 @@
     var results = []
     links.forEach(function(array, index) {
       array.forEach(function(el, i) {
-        results.push ({"source": index, "target": i, "value": el});
+        if (el > 0)
+          results.push ({"source": index, "target": i, "value": el});
       });        
     });
     return results;
   }
 
+  var positionNodesAndLinks = function(nodes, links) {
+    offsets = [];
+
+    links.sort(function(a, b) {
+      return a.value - b.value;
+    }).forEach(function(link) {
+
+    });
+
+    return links.sort(function(a, b) {
+      return a.source - b.source;
+    });
+  }
 
   d3.json('data.json', function(json) {
 
     var buckets = createBuckets(json)
     var nodes = createNodes(buckets);
-    var links = createLinks(nodes, json)
+    var links = createLinks(nodes)
+    positionNodesAndLinks(nodes, links);
 
-    console.log(links);
+    var linkPoints = function(d) {
+      return 'M'+ nodes[d.source].gate * 150+50 +' '+ nodes[d.source].y 
+        +' L'+ nodes[d.target].gate * 150 +' '+ nodes[d.target].y 
+        +' V'+ nodes[d.target].height + nodes[d.target].y
+        +' L'+ nodes[d.source].gate * 150+50 +' '+ nodes[d.source].height + nodes[d.source].y 
+        +' Z';
+    }
 
     svg.append('g')
       .selectAll('rect')
@@ -128,7 +149,22 @@
       .append('title')
       .text(function(d) { return d.name + ' (' + d.members.length + ')' }); 
 
+    svg.append('g')
+      .selectAll('.links')
+      .data(links)
+      .enter()
+      .append('path')
+      .attr('d', linkPoints)
+      .attr('fill', '#2E86D1')
+      .attr('opacity', 0.25)
+      .append('title')
+      .text(function(d) { return nodes[d.source].name +' -> '+ nodes[d.target].name +' '+ d.value }); 
+      
+    console.log(nodes);
+    console.log(links);
   });
+
+
 
 </script>
 
