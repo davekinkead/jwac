@@ -35,14 +35,14 @@
       }); 
   }
 
-  var positionNodes = function(buckets) {
-    var loop = 0;
+  var createNodes = function(buckets) {
+    var gate = 0;
 
     return [].concat.apply([], buckets.map(function(bucket) {
       var nodes = Object.keys(bucket).map(function(name) {
-        return {"name": name, "members": bucket[name], "x": loop * 150}
+        return {"name": name, "members": bucket[name], "gate": gate }
       });
-      loop++;
+      gate++;
       return positionNodesVertically(nodes);
     }));
   }
@@ -78,19 +78,48 @@
     return buckets;    
   }
 
+  var createLinks = function(nodes, data) {
+    var links = Array.apply(null, Array(nodes.length)).map(function() { return []; });
+
+    nodes.forEach(function(node, index) {
+      nodes.forEach(function(n, i) {
+        if (node.gate == n.gate - 1 && index !== i)
+          node.members.forEach(function(id) {
+            if (n.members.indexOf(id) !== -1)
+              if (links[index].hasOwnProperty(i))
+                links[index][i] += 1;
+              else
+                links[index][i] = 0;
+          });
+      });
+
+
+    });
+
+    var results = []
+    links.forEach(function(array, index) {
+      array.forEach(function(el, i) {
+        results.push ({"source": index, "target": i, "value": el});
+      });        
+    });
+    return results;
+  }
+
 
   d3.json('data.json', function(json) {
 
     var buckets = createBuckets(json)
+    var nodes = createNodes(buckets);
+    var links = createLinks(nodes, json)
 
-    var nodes = positionNodes(buckets);
+    console.log(links);
 
     svg.append('g')
       .selectAll('rect')
       .data(nodes)
       .enter()
       .append('rect')
-      .attr('x', function(d) { return d.x })
+      .attr('x', function(d) { return d.gate * 150 })
       .attr('y', function(d) { return d.y })
       .attr('width', 50) //function(d) { return nodeWidth(node); })
       .attr('height', function(d) { return d.height })
