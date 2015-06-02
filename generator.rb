@@ -28,6 +28,10 @@ last_names = %w{H'ghar Baratheon Stark Stark Ygritte Clegane Stark Lannister Sta
 
 gates = ["NEOC", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"]
 
+#gates = [
+#  "NEOC" => start:['1 Jan 2013, "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"]
+
+
 starting_vectors = [
   {"NEOC" => 0.4}, 
   {"ADFA" => 0.5}, 
@@ -43,7 +47,7 @@ vectors = {
     {"Resignation" => 0.1}
   ], 
   "ADFA" => [
-    {"JWAC 1" => 0.7},
+    {"JWAC 2" => 0.7},
     {"Medical" => 0.15},
     {"Resignation" => 0.15}
   ],
