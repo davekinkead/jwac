@@ -5,7 +5,7 @@
   <title>JWAC Sensitivity Analysis</title>
   <style>
 
-    body { text-align: center; margin: 0; padding: 0; }
+    body { text-align: center; margin: 0; padding: 0; color: #444;}
 
     #chart { margin: 1em; }
     #info { position: absolute; bottom: 50px; right: 50px; width: 300px; height: 200px; border: 1px solid #CCC; padding: 1em; box-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
@@ -13,6 +13,9 @@
     .node:hover { opacity: 0.5; }
     .link:hover { opacity: 0.325; }
     
+    div.tooltip { position: absolute; width: auto; height: auto; padding: 1em; font: 12px sans-serif; background: #EFEFEF; border: 0px; border-radius: 5px; pointer-events: none;
+    }
+    h4 {margin: 0; padding: 0;}
   </style>
 </head>
 <body>
@@ -24,6 +27,7 @@
   <h3>Click to Reset</h3>
   <p>TODO: Allow the user to override gate values for sensitivity analysis.  The downstream gates will turn red if course min/max is exceeded.</p>
 </div>
+<div id="tooltip"></div>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
@@ -36,6 +40,10 @@
     .append('svg')
     .attr('width', width)
     .attr('height', height);
+
+  var tooltip = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
 
   var createBuckets = function(data) {
     var buckets = []
@@ -178,13 +186,27 @@
       .data(nodeData);
 
     nodes.enter()
+      .append('g')
       .append('rect')
       .attr('class', 'node')
       .attr('x', function(d) { return d.x })
       .attr('y', function(d) { return d.y })
-      .attr('width', nodeWidth) //function(d) { return nodeWidth(node); })
+      .attr('width', nodeWidth)
       .attr('height', function(d) { return d.height })
       .attr('opacity', 0.375)
+      .on('mouseover', function(d) {
+        tooltip.transition()        
+          .duration(200)      
+          .style("opacity", .9);      
+        tooltip.html('<h4>'+d.name +"</h4><br/>"+ d.members.length + " JOUTs")  
+          .style("left", (d3.event.pageX) + "px")     
+          .style("top", (d3.event.pageY - 28) + "px");    
+      })
+      .on('mouseout', function(d) {
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 0);
+      })
       .on('dblclick', function(d) { 
         workingData = workingData.filter(function(datum) {
           return (d.members.indexOf(datum.id) !== -1);
@@ -198,7 +220,6 @@
       .attr('y', function(d) { return d.y })
       .attr('height', function(d) { return d.height })
       .attr('fill', function(d) { return colour(d.name) })
-      .select('title').text(function(d) { return d.name + '\n\r ' + d.members.length });
     
     nodes.exit()
       .remove();
@@ -211,14 +232,24 @@
       .attr('d', linkPoints)
       .attr('opacity', 0.25)
       .attr('class', 'link')
-      .append('title'); 
+      .on('mouseover', function(d) {
+        tooltip.transition()        
+          .duration(200)      
+          .style("opacity", .9);      
+        tooltip.html('<h4>'+ nodeData[d.source].name +' -> '+ nodeData[d.target].name +'</h4><br/>'+ d.value +' JOUTs ('+ d.proportion.toFixed(2) * 100 +'%)')  
+          .style("left", (d3.event.pageX) + "px")     
+          .style("top", (d3.event.pageY - 28) + "px");    
+      })
+      .on('mouseout', function(d) {
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 0);
+      });
 
     links.transition()
       .attr('d', linkPoints)
-      .attr('fill', function(d) { return colour(nodeData[d.target].name) })
-      .select('title')
-      .text(function(d) { return nodeData[d.source].name +' -> '+ nodeData[d.target].name +'\n\r'+ d.value +' ('+ d.proportion.toFixed(2) * 100 +'%)'});
-
+      .attr('fill', function(d) { return colour(nodeData[d.target].name) });
+     
     links.exit().remove();
   }
 
