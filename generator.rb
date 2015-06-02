@@ -27,6 +27,7 @@ first_names = %w{Jaqen Stannis Sansa Shae Eddard Ygritte Sandor Robb Tyrion Tali
 last_names = %w{H'ghar Baratheon Stark Stark Ygritte Clegane Stark Lannister Stark Lannister Missandei Tyrell Naharis Stark Bolton Baratheon Stark Seaworth Lannister Giantsbane Snow Tarly Gendry Bronn Drogo Mormont Baratheon Bolton Stark Sand Mormont Targaryen Gilly Tarth Targaryen Tyrell Baratheon Lannister Melisandre Greyjoy Baelish}
 
 gates = ["NEOC", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"]
+
 starting_vectors = [
   {"NEOC" => 0.4}, 
   {"ADFA" => 0.5}, 
@@ -122,7 +123,8 @@ end
 
   current_posting = choose(starting_vectors)  
   until terminating_vectors.include? current_posting
-    postings << current_posting
+    postings << { billet: current_posting, start: '1 Jan 2014', finish: '1 Jan 2015' }
+
     if current_posting == 'Backclass'
       i = gates.index (postings[-2]) || 1
       current_posting = choose(vectors[gates[i]])
@@ -130,7 +132,7 @@ end
       current_posting = choose(vectors[current_posting])
     end
   end
-  postings << current_posting
+  postings << { billet: current_posting, start: '1 Jan 2014', finish: '1 Jan 2015' }
   
   results << {id: id, name: name, postings: postings}
 end
