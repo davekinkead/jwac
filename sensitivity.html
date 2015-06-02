@@ -37,40 +37,6 @@
     .attr('width', width)
     .attr('height', height);
 
-  var sumNodes = function(nodes) {
-    return nodes.map(function(node) { 
-        return node.members.length;
-      }).reduce(function(prev, curr) { 
-        return prev + curr;
-      }); 
-  }
-
-  var createNodes = function(buckets) {
-    var gate = 0;
-
-    return [].concat.apply([], buckets.map(function(bucket) {
-      var nodes = Object.keys(bucket).map(function(name) {
-        return {"name": name, "members": bucket[name], "gate": gate }
-      });
-      gate++;
-      return positionNodesVertically(nodes);
-    }));
-  }
-
-  var positionNodesVertically = function(nodes) {
-    var denominator = sumNodes(nodes), pos = 0;
-    denominator = 100;
-
-    return nodes.sort(function(a, b) { 
-        return b.members.length - a.members.length;
-      }).map(function(node) {
-        node.y = pos / denominator * height + nodePadding;
-        node.height = node.members.length / denominator * height - nodePadding;
-        pos += node.members.length;
-        return node;
-      });
-  }
-
   var createBuckets = function(data) {
     var buckets = []
 
@@ -87,6 +53,24 @@
     });
 
     return buckets;    
+  }
+
+  var createNodes = function(buckets) {
+    var gate = 0;
+
+    return [].concat.apply([], buckets.map(function(bucket) {
+      var nodes = Object.keys(bucket).map(function(name) {
+        return {"name": name, "members": bucket[name], "gate": gate }
+      });
+      gate++;
+
+      return nodes.sort(function(a, b) {
+        if (a.gate == b.gate)
+          return b.members.length - a.members.length;
+        else
+          return a.gate - b.gate;
+      });
+    }));
   }
 
   var createLinks = function(nodes) {
@@ -115,8 +99,31 @@
   }
 
   var positionNodesAndLinks = function(nodes, links) {
-    nodes.forEach(function(node) {
+    var gateTotal = 0;
+
+    var totals = d3.nest()
+      .key(function(d) { return d.gate } )
+      .entries(nodes)
+      .map(function(group) {
+      return group.values.map(function(n) {
+        return n.members.length;
+      }).reduce(function(sum, cur) {
+        return sum + cur//.members.length;
+      });
+    });
+
+    var gateMax = Math.max.apply(null, (totals));
+    var factor = height / gateMax;
+
+    nodes.forEach(function(node, index) {
+      if (index == 0 || node.gate !== nodes[index-1].gate)
+        gateTotal = 0;
+
       node.x = node.gate * 125;
+      node.y = gateTotal * factor;
+      node.height = node.members.length * factor - nodePadding;
+
+      gateTotal += node.members.length;
     });
 
     var offsetLHS = [], offsetRHS = [];
@@ -166,9 +173,6 @@
     var linkData = createLinks(nodeData);
 
     positionNodesAndLinks(nodeData, linkData);
-
-    console.log(nodeData);
-    console.log(linkData);
 
     var nodes = svg.selectAll('.node')
       .data(nodeData);
