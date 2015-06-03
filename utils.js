@@ -61,6 +61,31 @@ var createLinks = function(nodes) {
   return results;
 }
 
+var createLinksFromDatedNodes = function(nodes) {
+  var links = Array.apply(null, Array(nodes.length)).map(function() { return []; });
+
+  nodes.forEach(function(node, index) {
+    nodes.forEach(function(n, i) {
+      if (node.gate == n.gate - 1 && index !== i)
+        node.members.forEach(function(id) {
+          if (n.members.indexOf(id) !== -1)
+            if (links[index].hasOwnProperty(i))
+              links[index][i] += 1;
+            else
+              links[index][i] = 1;
+        });
+    });
+  });
+
+  var results = []
+  links.forEach(function(array, index) {
+    array.forEach(function(el, i) {
+      results.push ({"source": index, "target": i, "value": el});
+    });        
+  });
+  return results;
+}
+
 var createDatedNodesFromPostingHistory = function(history) {
   var results = {};
 
@@ -82,6 +107,24 @@ var createDatedNodesFromPostingHistory = function(history) {
   }).sort(function(a, b) {
     return a.start - b.start;
   });
+}
+
+var createMemberPostingNodes = function(history) {
+  var results = [];
+
+  history = history.sort(function(a, b) {
+    return new Date(b.postings[b.postings.length-1].finish) - new Date(a.postings[a.postings.length-1].finish);
+  }).sort(function(a, b) {
+    return new Date(a.postings[0].start) - new Date(b.postings[0].start);
+  });
+
+  history.forEach(function(row) {
+    row.postings.forEach(function(posting) {
+      results.push({"member": row.id, "name": row.name, "billet": posting.billet, "start": new Date(posting.start), "finish": new Date(posting.finish)});
+    });
+  });
+
+  return results;
 }
 
 var convertToDays = function(milliseconds) {

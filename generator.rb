@@ -23,7 +23,7 @@ require 'json'
 results = []
 pmkey = 815100
 
-ranks = %w{MIDN ASBT SBLT LEUT}
+ranks = %w{MIDN ASLT SBLT LEUT}
 first_names = %w{Jaqen Stannis Sansa Shae Eddard Ygritte Sandor Robb Tyrion Talisa Jaime Missandei Margaery Daario Catelyn Roose Robert Arya Davos Cersei Tormund Jon Samwell Gendry Bronn Khal Jeor Joffrey Ramsay Bran Ellaria Jorah Viserys Gilly Brienne Daenerys Olenna Tommen Tywin Melisandre Theon Baelish Varys}
 last_names = %w{H'ghar Baratheon Stark Stark Ygritte Clegane Stark Lannister Stark Lannister Missandei Tyrell Naharis Stark Bolton Baratheon Stark Seaworth Lannister Giantsbane Snow Tarly Gendry Bronn Drogo Mormont Baratheon Bolton Stark Sand Mormont Targaryen Gilly Tarth Targaryen Tyrell Baratheon Lannister Melisandre Greyjoy Baelish}
 

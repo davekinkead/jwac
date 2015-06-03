@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<h1><a href="index.html">JWAC Flow Analysis</a></h1>
+<h1><a href="index.html">JWAC Member Analysis</a></h1>
 
 <div id="chart"></div>
 <div id="tooltip"></div>
@@ -49,38 +49,29 @@
     });
     timeOffset = convertToDays(Math.min.apply([], dates));
 
-    var timeEnd = timeOffset;
     nodes.forEach(function(n) {
       n.x = convertToDays(n.start) - timeOffset;
-      n.width = convertToDays(n.finish) - convertToDays(n.start);
+      n.width = convertToDays(n.finish) - convertToDays(n.start) - 1;
       n.y = 0;
-      n.height = n.members.length * 5;
-      timeEnd = Math.max(timeEnd, n.width)
+      n.height = 5;
     });
 
     bufferNodesVertically(nodes);
-    svg.attr('width', timeEnd)
+    svg.attr('width', 3000);
   }
 
   var bufferNodesVertically = function(nodes) {
-    var roof = 0;
+
+    var offset = 0;
     nodes.forEach(function(node, i) {
-      var set = nodes.filter(function(n) {
-        return (n.x == node.x)
-      });
-
-      for(var s=0; s<i; s++) {
-        if (nodes[s].finish >= node.start && nodes[s].start <= node.finish) {
-          node.y = nodes[s].height + nodes[s].y + 1;
-          roof = Math.max(roof, node.y);
-        }
+      if (i > 0 && node.member != nodes[i-1].member) {
+        offset += node.height + 1;
+        height = Math.max(height, offset)
       }
-
-      if (node.billet == 'NEOC' && i > 1)
-        node.y = roof + 25;
+      node.y = offset;
     });
 
-    svg.attr('height', Math.max(height, roof));
+    svg.attr('height', height);
   }
 
   function renderChart(data) {
@@ -95,10 +86,8 @@
 
     workingData = data;
 
-    var nodes = createDatedNodesFromPostingHistory(workingData);
-    var links = createLinksFromDatedNodes(nodes);
+    var nodes = createMemberPostingNodes(workingData);
 
-    console.log(links);
     positionNodesAndLinks(nodes);
 
     var node = svg.selectAll('.node')
@@ -111,13 +100,13 @@
       .attr('x', function(d) { return d.x })
       .attr('y', function(d) { return d.y })
       .attr('width', function(d) { return d.width })
-      .attr('height', function(d) { return d.height})
+      .attr('height', function(d) { return d.height })
       .attr('opacity', 0.375)
       .on('mouseover', function(d) {
         tooltip.transition()        
           .duration(200)      
           .style("opacity", .9);      
-        tooltip.html('<h4>'+d.billet +"</h4>"+ d.start.toLocaleDateString() +"-"+ d.finish.toLocaleDateString() +"<br/>"+ d.members.length + " JOUTs")  
+        tooltip.html('<h4>'+ d.name +' '+d.member +"</h4>"+ d.billet + " "+ d.start.toLocaleDateString() +" - "+ d.finish.toLocaleDateString())  
           .style("left", (d3.event.pageX) + "px")     
           .style("top", (d3.event.pageY - 28) + "px");    
       })
