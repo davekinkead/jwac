@@ -29,7 +29,8 @@
 </div>
 <div id="tooltip"></div>
 
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.js"></script>
+<script src="utils.js"></script>
 <script>
 
   var gates = ["NEOC", "ADFA", "Transfer", "Changeover", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"];
@@ -44,68 +45,6 @@
   var tooltip = d3.select("body").append("div")   
     .attr("class", "tooltip")               
     .style("opacity", 0);
-
-  var createBuckets = function(data) {
-    console.log(data);
-    var buckets = []
-
-    data.forEach(function(member) {
-      member.postings.forEach(function(posting, i) {
-        if (buckets[i] == undefined)
-          buckets[i] = {};
-        if (buckets[i].hasOwnProperty(posting.billet)) {
-          buckets[i][posting.billet].push(member.id);
-        } else {
-          buckets[i][posting.billet] = [member.id];
-        }
-      });
-    });
-
-    return buckets;    
-  }
-
-  var createNodes = function(buckets) {
-    var gate = 0;
-
-    return [].concat.apply([], buckets.map(function(bucket) {
-      var nodes = Object.keys(bucket).map(function(name) {
-        return {"name": name, "members": bucket[name], "gate": gate }
-      });
-      gate++;
-
-      return nodes.sort(function(a, b) {
-        if (a.gate == b.gate)
-          return b.members.length - a.members.length;
-        else
-          return a.gate - b.gate;
-      });
-    }));
-  }
-
-  var createLinks = function(nodes) {
-    var links = Array.apply(null, Array(nodes.length)).map(function() { return []; });
-
-    nodes.forEach(function(node, index) {
-      nodes.forEach(function(n, i) {
-        if (node.gate == n.gate - 1 && index !== i)
-          node.members.forEach(function(id) {
-            if (n.members.indexOf(id) !== -1)
-              if (links[index].hasOwnProperty(i))
-                links[index][i] += 1;
-              else
-                links[index][i] = 1;
-          });
-      });
-    });
-
-    var results = []
-    links.forEach(function(array, index) {
-      array.forEach(function(el, i) {
-        results.push ({"source": index, "target": i, "value": el});
-      });        
-    });
-    return results;
-  }
 
   var positionNodesAndLinks = function(nodes, links) {
     var gateTotal = 0;
@@ -128,7 +67,7 @@
       if (index == 0 || node.gate !== nodes[index-1].gate)
         gateTotal = 0;
 
-      node.x = node.gate * 125;
+      node.x = node.gate * 100;
       node.y = gateTotal * factor;
       node.height = node.members.length * factor - nodePadding;
 
@@ -231,7 +170,7 @@
     links.enter()
       .append('path')
       .attr('d', linkPoints)
-      .attr('opacity', 0.25)
+      .attr('opacity', 0.15)
       .attr('class', 'link')
       .on('mouseover', function(d) {
         tooltip.transition()        

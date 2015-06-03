@@ -21,95 +21,105 @@
 require 'json'
 
 results = []
+pmkey = 815100
 
 ranks = %w{MIDN ASBT SBLT LEUT}
 first_names = %w{Jaqen Stannis Sansa Shae Eddard Ygritte Sandor Robb Tyrion Talisa Jaime Missandei Margaery Daario Catelyn Roose Robert Arya Davos Cersei Tormund Jon Samwell Gendry Bronn Khal Jeor Joffrey Ramsay Bran Ellaria Jorah Viserys Gilly Brienne Daenerys Olenna Tommen Tywin Melisandre Theon Baelish Varys}
 last_names = %w{H'ghar Baratheon Stark Stark Ygritte Clegane Stark Lannister Stark Lannister Missandei Tyrell Naharis Stark Bolton Baratheon Stark Seaworth Lannister Giantsbane Snow Tarly Gendry Bronn Drogo Mormont Baratheon Bolton Stark Sand Mormont Targaryen Gilly Tarth Targaryen Tyrell Baratheon Lannister Melisandre Greyjoy Baelish}
 
-gates = ["NEOC", "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"]
-
-#gates = [
-#  "NEOC" => start:['1 Jan 2013, "JWAC 1", "JWAC 2", "MSB", "JWAC 3 Shore", "JWAC 3 Sea", "Fleet Board", "NOLC1", "JWAC Warfare", "JWAC Simulator", "JWAC Endorsement"]
 
 
-starting_vectors = [
-  {"NEOC" => 0.4}, 
-  {"ADFA" => 0.5}, 
-  {"Transfer" => 0.05}, 
-  {"Changeover" => 0.05}
-]
-terminating_vectors = ["Medical", "Resignation", "Failure", "JWAC Endorsement"]
-
-vectors = {
-  "NEOC" => [
+nodes = {
+  "NEOC" => {duration: 90,
+    edges: [
     {"JWAC 1" => 0.8},
     {"Medical" => 0.1},
     {"Resignation" => 0.1}
-  ], 
-  "ADFA" => [
+  ]},
+  "Changeover" => {duration: 90, edges: [
+    {"JWAC 1" => 1.0}
+  ]},
+  "Transfer" => {duration: 90, edges: [
+    {"JWAC 1" => 1.0}
+  ]},     
+  "ADFA" => {duration: 1000,
+    edges: [
     {"JWAC 2" => 0.7},
     {"Medical" => 0.15},
     {"Resignation" => 0.15}
-  ],
-  "Transfer" => [
-    {"JWAC 1" => 1.0}
-  ],
-  "Changeover" => [
-    {"JWAC 1" => 1.0}
-  ],
-  "JWAC 1" => [
-    {"JWAC 2" => 0.9},
+  ]}, 
+  "JWAC 1" => {duration: 60, dates: ['1 Jan', '1 Jun'],
+    edges: [
+    {"JWAC 2" => 0.3},
+    {"ADFA" => 0.6},
     {"Medical" => 0.025},
     {"Resignation" => 0.025},
-    {"Failure" => 0.05}
-  ], 
-  "JWAC 2" => [
+    {"Training Failure" => 0.05}
+  ]}, 
+  "JWAC 2" => {duration: 90, edges: [
     {"MSB" => 0.9},
     {"Medical" => 0.025},
     {"Resignation" => 0.025},
-    {"Failure" => 0.05}    
-  ], 
-  "MSB" => [
-    {"JWAC 3 Shore" => 0.9},
+    {"Training Failure" => 0.05}   
+  ]}, 
+  "MSB" => {duration: 5, dates: ['1 May', '1 Oct'],
+    edges: [
+    {"JWAC 3 Shore" => 0.925},
+    {"Medical" => 0.025},
+    {"Training Failure" => 0.05} 
+  ]}, 
+  "JWAC 3 Shore" => {duration: 120, edges: [
+    {"JWAC 3 Sea" => 0.925},
     {"Medical" => 0.025},
     {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
-  ], 
-  "JWAC 3 Shore" => [
-    {"JWAC 3 Sea" => 0.9},
-    {"Medical" => 0.025},
-    {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
-  ],  
-  "JWAC 3 Sea" => [
+    {"Training Failure" => 0.025} 
+  ]}, 
+  "JWAC 3 Sea" => {duration: 120, edges: [
     {"Fleet Board" => 0.9},
     {"Medical" => 0.025},
     {"Resignation" => 0.025},
-    {"Failure" => 0.05} 
-  ],  
-  "Fleet Board" => [
+    {"Training Failure" => 0.05} 
+  ]}, 
+  "Fleet Board" => {duration: 5, edges: [
     {"NOLC1" => 0.85},
-    {"Failure" => 0.15}
-  ],  
-  "NOLC1" => [
+    {"JWAC 3 Sea" => 0.10},
+    {"Training Failure" => 0.05} 
+  ]}, 
+  "NOLC1" => {duration: 30, edges: [
     {"JWAC Warfare" => 0.95},
     {"Medical" => 0.01},
     {"Resignation" => 0.02},
-    {"Failure" => 0.02} 
-  ],  
-  "JWAC Warfare" => [
+    {"Training Failure" => 0.02} 
+  ]}, 
+  "JWAC Warfare" => {duration: 30, edges: [
     {"JWAC Simulator" => 0.95},
     {"Medical" => 0.01},
     {"Resignation" => 0.02},
-    {"Failure" => 0.02} 
-  ],  
-  "JWAC Simulator" => [
+    {"Training Failure" => 0.02} 
+  ]}, 
+  "JWAC Simulator" => {duration: 150, edges: [
     {"JWAC Endorsement" => 0.95},
     {"Medical" => 0.01},
     {"Resignation" => 0.02},
-    {"Failure" => 0.02} 
-  ]
+    {"Training Failure" => 0.02} 
+  ]}, 
+  "JWAC Endorsement" => {duration: 180, edges: []},
+  "Resignation" => {duration: 25, edges: []},
+  "Training Failure" => {duration: 25, edges: []},
+  "Resignation" => {duration: 25, edges: []},
+  "Medical" => {duration: 25, edges: []}
 }
+
+starting_vectors = [
+  {"NEOC" => 0.8}, 
+  {"Transfer" => 0.1}, 
+  {"Changeover" => 0.1}
+]
+
+terminating_vectors = ["Medical", "Resignation", "Failure", "JWAC Endorsement"]
+
+
+
 
 def choose(array)
   sum = 0
@@ -120,25 +130,33 @@ def choose(array)
   end
 end
 
-100.times do |i|
-  id = 8151000 + i
-  name = "#{ranks.sample} #{first_names.sample} #{last_names.sample}"
-  postings = []
+require 'date'
+date = Date.parse('1 Jan 2011')
 
-  current_posting = choose(starting_vectors)  
-  until terminating_vectors.include? current_posting
-    postings << { billet: current_posting, start: '1 Jan 2014', finish: '1 Jan 2015' }
+6.times do |t|
+  (40 + rand * 20).to_i.times do |i|
 
-    if current_posting == 'Backclass'
-      i = gates.index (postings[-2]) || 1
-      current_posting = choose(vectors[gates[i]])
-    else
-      current_posting = choose(vectors[current_posting])
+    pmkey += 1
+    name = "#{ranks.sample} #{first_names.sample} #{last_names.sample}"
+    postings = []
+
+    current_posting = choose(starting_vectors)  
+    while nodes[current_posting][:edges].size > 0
+      start_date ||= date
+      end_date = start_date + nodes[current_posting][:duration]
+      postings << { billet: current_posting, start: start_date.to_s, finish: end_date.to_s }
+      current_posting = choose(nodes[current_posting][:edges])
+      start_date = end_date + 1
     end
+
+    postings << { billet: current_posting, start: '1 Jan 2014', finish: '1 Jan 2015' }
+    postings[-1][:start] = (Date.parse(postings[-2][:finish]) + 1).to_s
+    postings[-1][:finish] = (Date.parse(postings[-1][:start]) + 50).to_s
+    
+    results << {id: pmkey, name: name, postings: postings}
   end
-  postings << { billet: current_posting, start: '1 Jan 2014', finish: '1 Jan 2015' }
-  
-  results << {id: id, name: name, postings: postings}
+
+  date += 182
 end
 
 File.open "data.json", "w+" do |f|

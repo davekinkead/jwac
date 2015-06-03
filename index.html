@@ -1,201 +1,22 @@
 <!DOCTYPE html>
 <html class="jwac">
-<meta charset="utf-8">
-<title>JWAC Visualisation</title>
-<style>
+<head>
+  <meta charset="utf-8">
+  <title>JWAC Visualisation</title>
+  <style>
 
-@import url(style.css?aea6f0a);
-
-#chart {
-  height: 500px;
-}
-
-.node rect {
-  cursor: move;
-  fill-opacity: .9;
-  shape-rendering: crispEdges;
-}
-
-.node text {
-  pointer-events: none;
-  text-shadow: 0 1px 0 #fff;
-}
-
-.link {
-  fill: none;
-  stroke: #000;
-  stroke-opacity: .2;
-}
-
-.link:hover {
-  stroke-opacity: .5;
-}
-
-</style>
+  </style>
+</head>
 <body>
+  <h1>JWAC Analysis</h1>
 
-<header>
-  <aside>JWAC Analysis</aside>
-  <a href="" rel="author">Training Pipeline</a>
-</header>
+  <h3><a href="structure.html">Structural Analysis</a></h3>
+  <p>This treats the training pipeline structure as fixed.  The x-axis is cardinal meaning we are viewing many cohorts in the same structure.</p>
 
-<h1>Sensitivity Analysis</h1>
+  <h3><a href="flow.html">Flow Analysis</a></h3>
+  <p>A temporal view of the training pipeline.  The x-axis is time meaning we are view how cohorts move in 'real' life.</p>
 
-<p id="chart">
-
-<form name="structural-parameters" action="" method="GET" >
-
-  <legend>Parameters</legend>
-
-  <table>
-    <tr>
-      <th>Course</th><th>Duration</th><th>Historic</th>
-    </tr>
-    <tr>
-      <td><label for="neoc">NEOC</label></td>
-      <td><input name="neoc" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph1">Ph 1</label></td>
-      <td><input name="ph1" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph2">Ph 2</label></td>
-      <td><input name="ph2" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="msb">MSB</label></td>
-      <td><input name="msb" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph3shore">Ph 3 Shore</label></td>
-      <td><input name="ph3shore" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph3sea">Ph 3 Sea</label></td>
-      <td><input name="ph3sea" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="fleetboard">Fleet Board</label></td>
-      <td><input name="fleetboard" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="nolc1">NOLC1</label></td>
-      <td><input name="nolc1" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph4warfare">Ph 4 Warfare</label></td>
-      <td><input name="ph4warfare" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="ph4sim">Ph 4 Sim</label></td>
-      <td><input name="ph4sim" type="text" value="" placeholder=""></input></td>
-    </tr>
-    <tr>
-      <td><label for="endorsement">PE</label></td>
-      <td><input name="endorsement" type="text" value="" placeholder=""></input></td>
-    </tr>
-  </table>
-
-  <input type="submit" value="Apply" />
-
-</form>
-
-<script src="http://d3js.org/d3.v2.min.js?2.9.1"></script>
-<script src="sankey.js"></script>
-<script>
-
-var margin = {top: 1, right: 1, bottom: 6, left: 1},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
-
-var formatNumber = d3.format(",.0f"),
-    format = function(d) { return formatNumber(d) + " TWh"; },
-    color = d3.scale.category20();
-
-var svg = d3.select("#chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-var sankey = d3.sankey()
-    .nodeWidth(15)
-    .nodePadding(10)
-    .size([width, height]);
-
-var path = sankey.link();
-
-var getLinks = function(nodes, jouts) {
-  var _links = [];
-  for (var i=0, len=nodes.length; i<len; i++) {
-    for (var j=0; j<nodes[i].links.length; j++) {
-      var _link = {"source": 1, "target": 15, "value": 50 };
-      _links.push(_link);
-      console.log(_link);
-    }
-
-    //
-    //console.log(nodes.map(function(n) { return n.name; }).indexOf(nodes[i].name));
-    //console.log(_link);
-    //_links.push(_link);
-  }
-  //console.log(_links);
-  return _links;
-}   
-
-d3.json("data.json", function(data) {
-
-  sankey
-      .nodes(data.nodes)
-      .links(data.links)
-      .layout(32);
-
-  var link = svg.append("g").selectAll(".link")
-      .data(data.links)
-    .enter().append("path")
-      .attr("class", "link")
-      .attr("d", path)
-      .style("stroke-width", function(d) { return Math.max(1, d.dy); })
-      .sort(function(a, b) { return b.dy - a.dy; });
-
-  link.append("title")
-      .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + format(d.value); });
-
-  var node = svg.append("g").selectAll(".node")
-      .data(data.nodes)
-    .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-    .call(d3.behavior.drag()
-      .origin(function(d) { return d; })
-      .on("dragstart", function() { this.parentNode.appendChild(this); })
-      .on("drag", dragmove));
-
-  node.append("rect")
-      .attr("height", function(d) { return d.dy; })
-      .attr("width", function(d) { return d.duration; })
-      .style("fill", function(d) { return d.color = color(d.name.replace(/ .*/, "")); })
-      .style("stroke", function(d) { return d3.rgb(d.color).darker(2); })
-    .append("title")
-      .text(function(d) { return d.name + "\n" + format(d.value); });
-
-  node.append("text")
-      .attr("x", -6)
-      .attr("y", function(d) { return d.dy / 2; })
-      .attr("dy", ".35em")
-      .attr("text-anchor", "end")
-      .attr("transform", null)
-      .text(function(d) { return d.name; })
-      .filter(function(d) { return d.x < width / 2; })
-      .attr("x", 6)
-      .attr("text-anchor", "start");
-
-  function dragmove(d) {
-    d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
-    sankey.relayout();
-    link.attr("d", path);
-  }
-});
-
-</script>
+  <h3><a href="#" title="coming soon">Member Analysis</a></h3>
+  <p>Like the flow analysis but at an individual level</p>
+</body>
+</html>
