@@ -134,7 +134,7 @@
   }
 
 
-  d3.json('data.json', function(json) {
+  d3.json('data.json', function(error, json) {
 
     renderChart(json);
     d3.select('#info').on('dblclick', function() {renderChart(json)} );
