@@ -63,11 +63,11 @@
   }
 
   var bufferNodesVertically = function(nodes) {
-
     nodes.forEach(function(node, i) {
       for(var t=0; t<i; t++) {
-        if (nodes[t].finish >= node.start && nodes[t].start <= node.finish ) {
-          node.y = nodes[t].height + nodes[t].y;
+        if (nodes[t].finish >= node.start && nodes[t].start <= node.finish
+          && nodes[t].height+nodes[t].y >= node.y && nodes[t].y <= node.y+node.height) {
+          node.y = nodes[t].height + nodes[t].y
           height = Math.max(height, node.y + node.height);
         }
       }
@@ -130,7 +130,7 @@
         tooltip.transition()        
           .duration(200)      
           .style("opacity", .9);      
-        tooltip.html('<h4>'+d.billet +"</h4>"+ d.start.toDateString() +"-"+ d.finish.toDateString() +"<br/>"+ d.members.length + " JOUTs")  
+        tooltip.html('<h4>'+d.billet +"</h4>"+ d.start.toLocaleDateString() +"-"+ d.finish.toLocaleDateString() +"<br/>"+ d.members.length + " JOUTs")  
           .style("left", (d3.event.pageX) + "px")     
           .style("top", (d3.event.pageY - 28) + "px");    
       })

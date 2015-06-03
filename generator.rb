@@ -131,7 +131,7 @@ def choose(array)
 end
 
 require 'date'
-date = Date.parse('1 Jan 2011')
+date = Date.parse('10 Aug 2011')
 
 6.times do |t|
   (40 + rand * 20).to_i.times do |i|
