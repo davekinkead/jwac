@@ -42,16 +42,28 @@ nodes = {
   "Transfer" => {duration: 90, edges: [
     {"JWAC 1" => 1.0}
   ]},     
-  "ADFA" => {duration: 1000,
+  "ADFA 1" => {duration: 365,
     edges: [
-    {"JWAC 2" => 0.7},
-    {"Medical" => 0.15},
-    {"Resignation" => 0.15}
+    {"ADFA 2" => 0.9},
+    {"Medical" => 0.05},
+    {"Resignation" => 0.05}
+  ]}, 
+  "ADFA 2" => {duration: 365,
+    edges: [
+    {"ADFA 3" => 0.9},
+    {"Medical" => 0.05},
+    {"Resignation" => 0.05}
+  ]}, 
+  "ADFA 3" => {duration: 365,
+    edges: [
+    {"JWAC 2" => 0.9},
+    {"Medical" => 0.05},
+    {"Resignation" => 0.05}
   ]}, 
   "JWAC 1" => {duration: 60, dates: ['1 Jan', '1 Jun'],
     edges: [
     {"JWAC 2" => 0.3},
-    {"ADFA" => 0.6},
+    {"ADFA 1" => 0.6},
     {"Medical" => 0.025},
     {"Resignation" => 0.025},
     {"Training Failure" => 0.05}
@@ -131,7 +143,7 @@ def choose(array)
 end
 
 require 'date'
-date = Date.parse('10 Aug 2011')
+date = Date.parse('1 Aug 2011')
 
 6.times do |t|
   (40 + rand * 20).to_i.times do |i|
