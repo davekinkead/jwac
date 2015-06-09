@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>JWAC Dashboard</title>
+  <style>
+
+    body { text-align: center; margin: 0; padding: 0; color: #444; font-family: Helvetica, sans-serif; }
+    a { color: #08306B; text-decoration: none;}
+
+    #entry, #adfa, #progress, #output { margin: 2em; display: inline-block; min-width: 20%; }
+
+    #years a { margin: 1em; }
+    #entry { width: 66%;}
+    #adfa {}
+    #progress { width: 66%; }
+    #output {}
+    
+    .summary { display: inline-block; margin: 1em; }
+    .summary .item { display: block; margin-bottom: 0.5em; }
+    .summary .value { font-size: 3em; }
+
+    .failure { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+
+  <h1><a href="index.html">JWAC Dashboard</a></h1>
+
+  <div id="years"><a href="#">2011</a><a href="#">2012</a><a href="#">2013</a><a href="#">2014</a><a href="#">2015</a></div>
+
+  <div id="entry">
+    <div class="neoc summary">
+      <h4>NEOC</h4>
+      <span class="target item">Target</span> <span class="target value">0</span>
+      <span class="achieved item">Achieved</span> <span class="achieved value">0</span>
+    </div>
+
+    <div class="adfa summary">
+      <h4>ADFA</h4>
+      <span class="target item">Target</span> <span class="target value">0</span>
+      <span class="achieved item">Achieved</span> <span class="achieved value">0</span>
+    </div>
+
+    <div class="sailor summary">
+      <h4>Sailor</h4>
+      <span class="target item">Target</span> <span class="target value">0</span>
+      <span class="achieved item">Achieved</span> <span class="achieved value">0</span>
+    </div>
+  </div>
+
+  <div id="adfa">
+    Little Graph
+  </div>
+
+  <div id="progress">
+    Big Graph
+  </div>
+
+  <div id="output">
+    <div class="summary">
+      <h4>2016 BWCs</h4>
+      <span class="item">Target</span> <span class="value">37</span>
+      <span class="item">Achieved</span> <span class="value failure">28</span>
+      <span class="item">Wastage</span> <span class="value">12.8%</span>
+    </div>    
+  </div>
+
+  <script src="d3.js"></script>
+  <script src="utils.js"></script>
+  <script>
+
+    var achievedTarget = function(target, actual) {
+      return (actual >= target) ? 'success': 'failure';
+    }
+
+    var renderEntry = function(data) {
+      var neoc = d3.select('#entry').select('.neoc');
+      neoc.select('.target.value').text(data.entry.NEOC.target);
+      neoc.select('.achieved.value').text(data.entry.NEOC.achieved).classed(achievedTarget(data.entry.NEOC.target, data.entry.NEOC.achieved), true);
+
+      var adfa = d3.select('#entry').select('.adfa');
+      adfa.select('.target.value').text(data.entry.ADFA.target);
+      adfa.select('.achieved.value').text(data.entry.ADFA.achieved).classed(achievedTarget(data.entry.ADFA.target, data.entry.ADFA.achieved), true);
+
+      var sailor = d3.select('#entry').select('.sailor');
+      sailor.select('.target.value').text(data.entry.sailor.target);
+      sailor.select('.achieved.value').text(data.entry.sailor.achieved).classed(achievedTarget(data.entry.sailor.target, data.entry.sailor.achieved), true);            
+    }
+
+    function refreshData(data) {
+      renderEntry(data);
+    }
+
+
+    var data = {
+      "2011": {
+        "entry": {
+          "NEOC": {"target": 49, "achieved": 41},
+          "ADFA": {"target": 36, "achieved": 36},
+          "sailor": {"target": 12, "achieved": 10}
+        },
+        "ADFA": {},
+        "progress": {
+          "NEOC": {"capacity": 90, "target": 77, "achieved": 77, "separated": 6, "medical": 6},
+          "Phase 1": {"capacity": 45, "target": 41, "achieved": 38, "separated": 1, "medical": 0},
+          "Phase 2": {"capacity": 70, "target": 41, "achieved": 37, "separated": 2, "medical": 1},
+          "MSB": {"capacity": 70, "target": 41, "achieved": 33, "separated": 1, "medical": 0},
+          "Phase 3": {"capacity": 45, "target": 41, "achieved": 32, "separated": 1, "medical": 0},
+          "Fleet Board": {"capacity": 45, "target": 41, "achieved": 31, "separated": 1, "medical": 0},
+          "Phase 4": {"capacity": 36, "target": 36, "achieved": 29, "separated": 1, "medical": 1},
+          "BWC": {"capacity": 36, "target": 36, "achieved": 27, "separated": 1, "medical": 1}
+        }
+      }
+    }
+
+    refreshData(data['2011']);
+
+  </script>
+
+</body>
+</html>
