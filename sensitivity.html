@@ -14,7 +14,7 @@
     #chart, #data { width: 80%; margin: 0 auto;}
 
     table, h1 { text-align: center; }
-
+    input { width: 5em; text-align: center;}
   </style>
 </head>
 <body>
@@ -25,26 +25,54 @@
   <table id="data"></table>  
 
   <script type="text/javascript" src="d3.js"></script>
+  <script type="text/javascript" src="markov.js"></script>
   <script type="text/javascript">
 
   var structure = {
-    "NEOC": {"name": "NEOC", "capacity": 90, "target": 77, "achieved": 77, "separated": 6, "medical": 6},
-    "Phase 1": {"name": "Phase 1", "capacity": 45, "target": 41, "achieved": 38, "separated": 1, "medical": 0},
-    "Phase 2": {"name": "Phase 2", "capacity": 70, "target": 41, "achieved": 37, "separated": 2, "medical": 1},
-    "MSB": {"name": "MSB", "capacity": 70, "target": 41, "achieved": 33, "separated": 1, "medical": 0},
-    "Phase 3": {"name": "Phase 3", "capacity": 45, "target": 41, "achieved": 32, "separated": 1, "medical": 0},
-    "Fleet Board": {"name": "Fleet Board", "capacity": 45, "target": 41, "achieved": 31, "separated": 1, "medical": 0},
-    "Phase 4": {"name": "Phase 4", "capacity": 36, "target": 36, "achieved": 29, "separated": 1, "medical": 1},
-    "BWC": {"name": "BWC", "capacity": 36, "target": 36, "achieved": 27, "separated": 0, "medical": 0}
+    "NEOC": {"name": "NEOC", "capacity": 70, "target": 50, "actual": 50, "separated": 6, "medical": 6},
+    "Phase 1": {"name": "Phase 1", "capacity": 45, "target": 41, "actual": 38, "separated": 1, "medical": 0},
+    "Phase 2": {"name": "Phase 2", "capacity": 70, "target": 41, "actual": 37, "separated": 2, "medical": 1},
+    "MSB": {"name": "MSB", "capacity": 70, "target": 41, "actual": 33, "separated": 1, "medical": 0},
+    "Phase 3": {"name": "Phase 3", "capacity": 45, "target": 41, "actual": 32, "separated": 1, "medical": 0},
+    "Fleet Board": {"name": "Fleet Board", "capacity": 45, "target": 41, "actual": 31, "separated": 1, "medical": 0},
+    "Phase 4": {"name": "Phase 4", "capacity": 36, "target": 36, "actual": 29, "separated": 1, "medical": 1},
+    "BWC": {"name": "BWC", "capacity": 36, "target": 36, "actual": 27, "separated": 0, "medical": 0}
   }
-
+  var data = {}
   var width = document.getElementById('chart').offsetWidth;
+  var height = 400;
+  var chart = d3.select('#chart').append('svg')
+    .attr('height', height)
+    .attr('width', function() { return width });
+
+  var updateModel = function(from) {
+    return structure;
+  }
 
   var gateWidth = function(g) {
     return width / (g + 1);
   }
 
-  var renderTable = function(data) {
+  var enforce = function(str, col, row) {
+    var val = Number(str);
+    if (row == 'capacity')
+      return val;
+    if (row == 'target')
+      return Math.min(data[col].capacity, val);
+    else {
+      var rest = 0 - data[col][row];
+      Object.keys(data[col]).forEach(function(d) {
+        if (['capacity', 'target', 'name'].indexOf(d) == -1) {
+          rest += data[col][d];
+        }
+      })
+      if (val + rest > data[col].capacity)
+        val = data[col].capacity - rest;
+      return Math.min(data[col].capacity, val);
+    }
+  }
+
+  var renderTable = function() {
     var table = d3.select('#data');
     var gates = Object.keys(data);
     var gw = gateWidth(gates.length);
@@ -56,24 +84,26 @@
       topRow.append('th').text(g);
     });
 
-    ['capacity', 'target', 'achieved', 'separated', 'medical'].forEach(function(r) {
+    ['capacity', 'target', 'actual', 'separated', 'medical'].forEach(function(r) {
       var row = table.append('tr');
       row.append('td').text(r);
 
       gates.forEach(function(g) {
-        row.append('td').text(data[g][r]);
+        row.append('td').append('input')
+          .attr('name', g+'-'+r)
+          .attr('value', data[g][r])
+          .on('change', function() { 
+            data[g][r] = enforce(this.value, g, r);
+            this.value = data[g][r];
+            renderChart(); 
+          });
       });
     });
 
     d3.selectAll('td').attr('width', gw);
   }
 
-  var renderChart = function(data) {
-    var height = 400;
-    
-    var chart = d3.select('#chart').append('svg')
-      .attr('height', height)
-      .attr('width', function() { return width });
+  var renderChart = function() {
 
     var gates = Object.keys(data).map(function(k) { return data[k] });
     var gw = gateWidth(gates.length);
@@ -83,40 +113,55 @@
       .range([height, 0])
       .domain([0, Math.max.apply(null, vals)]);
 
-    var gate = chart.selectAll('.gate').data(gates);
+    var groups = [].concat.apply([], gates.map(function(g) {
+      var base = 0;
+      return Object.keys(g).filter(function(f) {
+        return ['capacity', 'target', 'name'].indexOf(f) == -1;
+      }).map(function(m) {
+        var tmp = {'gate': g.name, 'target':g.target, 'group': m, 'students': g[m], 'base': base}
+        base += g[m];
+        return tmp;
+      });
+    }));
+
+    var gate = chart.selectAll('.gate').data(groups);
 
     gate.enter()
       .append('g')
       .append('rect')
-      .attr('x', function(d, i) { return gw + 5 + gw * i })
-      .attr('y', function(d) { return y(d.achieved) })
+      .attr('class', 'gate')
+      .attr('x', function(d) { return gw + 5 + gw * Object.keys(structure).indexOf(d.gate) })
+      .attr('y', function(d) { return y(d.students + d.base) })
       .attr('width', function() { return gw - 10 })
-      .attr('height', function(d) { return height - y(d.achieved) })
-      .attr('fill', function(d) { return (d.target > d.achieved) ? 'red' : 'green'})
+      .attr('height', function(d) { return height - y(d.students) })
+      .attr('fill', function(d) { 
+        if (d.group == 'actual')
+          return (d.target > d.students) ? 'red' : 'blue';
+        else if (d.group == 'medical')
+          return 'yellow';
+        else
+          return 'orange';
+      })
       .attr('opacity', 0.25)
-      .append('title').text(function(d) { return 'Target: '+ d.target +"\nAchieved: "+ d.achieved});
+      .append('title').text(function(d) { 
+        var title = d.group + ": " + d.students;
+        return (d.group == 'actual') ? 'target: '+ d.target +"\n" + title : title;
+      });
 
-    gate.enter()
-      .append('g')
-      .append('rect')
-      .attr('x', function(d, i) { return gw + 5 + gw * i })
-      .attr('y', function(d) { return y(d.achieved + d.medical) })
-      .attr('width', function() { return gw - 10 })
-      .attr('height', function(d) { return height - y(d.medical) })
-      .attr('fill', 'blue')
-      .attr('opacity', 0.25)
-      .append('title').text(function(d) { return 'Medical: '+ d.medical });
+    gate.transition()
+      .attr('y', function(d) { return y(d.students + d.base) })
+      .attr('height', function(d) { return height - y(d.students) })
+      .attr('fill', function(d) { 
+        if (d.group == 'actual')
+          return (d.target > d.students) ? 'red' : 'blue';
+        else if (d.group == 'medical')
+          return 'yellow';
+        else
+          return 'orange';
+      });
 
-    gate.enter()
-      .append('g')
-      .append('rect')
-      .attr('x', function(d, i) { return gw + 5 + gw * i })
-      .attr('y', function(d) { return y(d.medical + d.achieved + d.separated) })
-      .attr('width', function() { return gw - 10 })
-      .attr('height', function(d) { return height - y(d.separated ) })
-      .attr('fill', 'navy')
-      .attr('opacity', 0.1)
-      .append('title').text(function(d) { return 'Separated: '+ d.medical });
+    gate.exit()
+      .remove();
 
   }
 
@@ -126,9 +171,10 @@
     var newData = {};
   }
 
-  renderTable(structure);
-  //console.log(readTable());
-  renderChart(structure);
+  updateModel('NEOC');
+  data = updateModel('NEOC');
+  renderTable();
+  renderChart();
 
 
   </script>
