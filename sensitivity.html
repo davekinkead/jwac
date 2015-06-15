@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="jwac">
+<head>
+  <meta charset="utf-8">
+  <title>JWAC Sensitivity Analysis</title>
+  <link href='http://fonts.googleapis.com/css?family=Merriweather:300,700,300italic' rel='stylesheet' type='text/css'>
+  <style>
+    body { font-family: 'Merriweather', serif; font-weight: 300; color: #3E3E3E; font-size: 16px; }
+    a { text-decoration: none; color: #08306B; }
+    a:hover { background-color: rgb(255, 250, 205); }
+
+    .wrapper { margin: 1em auto; max-width: 700px; }
+
+    #chart, #data { width: 80%; margin: 0 auto;}
+
+    table, h1 { text-align: center; }
+
+  </style>
+</head>
+<body>
+  <h1>JWAC Sensitivity Analysis</h1>
+
+  <div id="chart"></div>
+  
+  <table id="data"></table>  
+
+  <script type="text/javascript" src="d3.js"></script>
+  <script type="text/javascript">
+
+  var structure = {
+    "NEOC": {"name": "NEOC", "capacity": 90, "target": 77, "achieved": 77, "separated": 6, "medical": 6},
+    "Phase 1": {"name": "Phase 1", "capacity": 45, "target": 41, "achieved": 38, "separated": 1, "medical": 0},
+    "Phase 2": {"name": "Phase 2", "capacity": 70, "target": 41, "achieved": 37, "separated": 2, "medical": 1},
+    "MSB": {"name": "MSB", "capacity": 70, "target": 41, "achieved": 33, "separated": 1, "medical": 0},
+    "Phase 3": {"name": "Phase 3", "capacity": 45, "target": 41, "achieved": 32, "separated": 1, "medical": 0},
+    "Fleet Board": {"name": "Fleet Board", "capacity": 45, "target": 41, "achieved": 31, "separated": 1, "medical": 0},
+    "Phase 4": {"name": "Phase 4", "capacity": 36, "target": 36, "achieved": 29, "separated": 1, "medical": 1},
+    "BWC": {"name": "BWC", "capacity": 36, "target": 36, "achieved": 27, "separated": 0, "medical": 0}
+  }
+
+  var width = document.getElementById('chart').offsetWidth;
+
+  var gateWidth = function(g) {
+    return width / (g + 1);
+  }
+
+  var renderTable = function(data) {
+    var table = d3.select('#data');
+    var gates = Object.keys(data);
+    var gw = gateWidth(gates.length);
+
+    var topRow = table.append('tr');
+    topRow.append('th');
+
+    gates.forEach(function(g) {
+      topRow.append('th').text(g);
+    });
+
+    ['capacity', 'target', 'achieved', 'separated', 'medical'].forEach(function(r) {
+      var row = table.append('tr');
+      row.append('td').text(r);
+
+      gates.forEach(function(g) {
+        row.append('td').text(data[g][r]);
+      });
+    });
+
+    d3.selectAll('td').attr('width', gw);
+  }
+
+  var renderChart = function(data) {
+    var height = 400;
+    
+    var chart = d3.select('#chart').append('svg')
+      .attr('height', height)
+      .attr('width', function() { return width });
+
+    var gates = Object.keys(data).map(function(k) { return data[k] });
+    var gw = gateWidth(gates.length);
+
+    var vals = JSON.stringify( data ).replace(/"(.*?)"\:|\{|\}/g,'' ).split(',').map(function(d) { return Number(d) }); 
+    var y = d3.scale.linear()
+      .range([height, 0])
+      .domain([0, Math.max.apply(null, vals)]);
+
+    var gate = chart.selectAll('.gate').data(gates);
+
+    gate.enter()
+      .append('g')
+      .append('rect')
+      .attr('x', function(d, i) { return gw + 5 + gw * i })
+      .attr('y', function(d) { return y(d.achieved) })
+      .attr('width', function() { return gw - 10 })
+      .attr('height', function(d) { return height - y(d.achieved) })
+      .attr('fill', function(d) { return (d.target > d.achieved) ? 'red' : 'green'})
+      .attr('opacity', 0.25)
+      .append('title').text(function(d) { return 'Target: '+ d.target +"\nAchieved: "+ d.achieved});
+
+    gate.enter()
+      .append('g')
+      .append('rect')
+      .attr('x', function(d, i) { return gw + 5 + gw * i })
+      .attr('y', function(d) { return y(d.achieved + d.medical) })
+      .attr('width', function() { return gw - 10 })
+      .attr('height', function(d) { return height - y(d.medical) })
+      .attr('fill', 'blue')
+      .attr('opacity', 0.25)
+      .append('title').text(function(d) { return 'Medical: '+ d.medical });
+
+    gate.enter()
+      .append('g')
+      .append('rect')
+      .attr('x', function(d, i) { return gw + 5 + gw * i })
+      .attr('y', function(d) { return y(d.medical + d.achieved + d.separated) })
+      .attr('width', function() { return gw - 10 })
+      .attr('height', function(d) { return height - y(d.separated ) })
+      .attr('fill', 'navy')
+      .attr('opacity', 0.1)
+      .append('title').text(function(d) { return 'Separated: '+ d.medical });
+
+  }
+
+  var readTable = function() {
+    var table = d3.select('#data')
+    console.log(table);
+    var newData = {};
+  }
+
+  renderTable(structure);
+  //console.log(readTable());
+  renderChart(structure);
+
+
+  </script>
+</body>
+</html>
