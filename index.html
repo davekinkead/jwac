@@ -2,21 +2,41 @@
 <html class="jwac">
 <head>
   <meta charset="utf-8">
-  <title>JWAC Visualisation</title>
+  <title>JWAC Data Visualisation</title>
+  <link href='http://fonts.googleapis.com/css?family=Merriweather:300,700,300italic' rel='stylesheet' type='text/css'>
   <style>
+    body { font-family: 'Merriweather', serif; font-weight: 300; color: #3E3E3E; font-size: 16px; }
+    a { text-decoration: none; color: #08306B; }
+    a:hover { background-color: rgb(255, 250, 205); }
+
+    #jumbo { min-height: 66%; }
+
+    .wrapper, #jumbo h1 { margin: 1em auto; max-width: 700px; }
 
   </style>
 </head>
 <body>
-  <h1>JWAC Analysis</h1>
+  <div id="jumbo">
+    <h1>JWAC Analysis &amp; Visualisation</h1>
+  </div>
 
-  <h3><a href="structure.html">Structural Analysis</a></h3>
-  <p>This treats the training pipeline structure as fixed.  The x-axis is cardinal meaning we are viewing many cohorts in the same structure.</p>
+  <div class="wrapper">
+    <p>What is the best way to understand and analyse training flows? The introduction of NGD and IE9 permits new technologies and tools to assist with this.</p>
+    <p>One new opportunity is to use single page apps that read data exported from PMkeys and allow visual exploration. Below are some examples to illustrate what is possible.</p>
 
-  <h3><a href="member.html">Member Analysis</a></h3>
-  <p>Like the flow analysis but at an individual level</p>
+    <h3><a href="dashboard.html" target="_blank">Dashboard</a></h3>
+    <p>Dashboards provide an instant of key data and metrics.  This one shows JWAC KPIs for each year.</p>
 
-  <h3><a href="flow.html" title="coming soon">Flow Analysis (not working)</a></h3>
-  <p>A temporal view of the training pipeline.  The x-axis is time meaning we are view how cohorts move in 'real' life.</p>
+    <h3><a href="structure.html" target="_blank">Structural Analysis</a></h3>
+    <p>The JWAC structural analysis shows the flow of trainees through the JWAC training pipeline. Based on individual posting history, the graph aggregates cohorts into one single directed graph.</p> 
+    <p>Double click any training gate to filter only JOUTs that pass through that gate.</p>
+
+    <h3><a href="member.html" target="_blank">Member Analysis</a></h3>
+    <p>This visualisation shows the progress of individual JOUTs grouped by cohort. Historical data is applied to estimate the likely BWC completion date.</p>
+
+    <h3><a href="sensitivity.html" target="_blank">Sensitivity Analysis</a></h3>
+    <p>The sensitivity analysis shows what happens to the historical training structure if parameters change.</p>
+    <p>Double click any course to alter numbers.</p>
+  </div>
 </body>
 </html>
